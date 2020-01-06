@@ -19,8 +19,6 @@ from tracker_tools import (
 )
 
 import sys
-from pykitti import tracking as kitti_tracking
-sys.path.append('pykitti')
 
 def run_tracking(
     dataset_name,
@@ -45,7 +43,6 @@ def run_tracking(
     """Main function for runnning baseline tracker.
 
     Args:
-        datasetname: supports Argoverse and KITTI
         dataset_dir: root path of input dataset
         log_id: id of the input
         path_output: root path of tracking output 
@@ -73,34 +70,18 @@ def run_tracking(
         os.makedirs(path_output)
 
     
-    #Initialize dataset 
-    if dataset_name == 'KITTI':
-        if ground_removal_method == 'map' or use_map_lane == True or region_type != "all":
-            print('KITTI has no map data! Turn off map-based functions.')
-            raise NotImplementedError
+    path_input = os.path.join(dataset_dir, log_id)
+    city_info_fpath = f"{dataset_dir}/{log_id}/city_info.json"
+    city_info = read_json_file(city_info_fpath)
+    city_name = city_info["city_name"]
+    calib_fpath = f"{path_input}/vehicle_calibration_info.json"
+    calib_data = read_json_file(calib_fpath)
 
-        kitti_data = kitti_tracking(dataset_dir, log_id)
-        path_input = os.path.join(dataset_dir)
-        city_name = None
-        calib_data = kitti_data.get_calib()
-        T_w_to_imu_list = kitti_data.get_oxt_list()
-        num_frames = kitti_data.__len__()
+    sdb = SynchronizationDB(dataset_dir, collect_single_log_id=log_id)
 
-    elif dataset_name == 'Argoverse':
-        path_input = os.path.join(dataset_dir, log_id)
-        city_info_fpath = f"{dataset_dir}/{log_id}/city_info.json"
-        city_info = read_json_file(city_info_fpath)
-        city_name = city_info["city_name"]
-        calib_fpath = f"{path_input}/vehicle_calibration_info.json"
-        calib_data = read_json_file(calib_fpath)
-
-        sdb = SynchronizationDB(dataset_dir, collect_single_log_id=log_id)
-    
-        path_lidars = glob.glob(os.path.join(path_input, "lidar/*.ply"))
-        path_lidars.sort()
-        num_frames = len(path_lidars)
-    else:
-         raise NotImplementedError
+    path_lidars = glob.glob(os.path.join(path_input, "lidar/*.ply"))
+    path_lidars.sort()
+    num_frames = len(path_lidars)
 
     #Initialize detector and tracker 
     detector = Detector(
@@ -344,14 +325,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--dataset_name",
-        type=str,
-        help="name of input dataset",
-        default="Argoverse",
-        choices=["Argoverse", "KITTI"]
-    )
-
-    parser.add_argument(
         "--save_bev_imgs",
         help="save birds eye view image",
         action="store_true",
@@ -361,7 +334,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    dataset_name = args.dataset_name
+    dataset_name = "Argoverse"
     ground_level = args.ground_level
     dbscan_eps = args.dbscan_eps
     path_dataset = args.path_dataset

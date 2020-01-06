@@ -1,0 +1,9 @@
+*__pycache__/
+*.egg-info/
+*.pyc
+
+# user needs to re-dowload this GPL file
+smallestenclosingcircle.py
+
+# dev
+.vscode
