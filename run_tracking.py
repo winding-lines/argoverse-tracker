@@ -355,8 +355,7 @@ if __name__ == "__main__":
 
     path_output = os.path.join(
         args.path_output,
-        log_id
-        + ("_lane_%d_fixbbox_%d_rcnn_%d_%s_%s_%s_%s")
+        ("lane_%d_fixbbox_%d_rcnn_%d_%s_%s_%s_%s")
         % (
             use_map_lane,
             fix_bbox_size,
@@ -366,7 +365,8 @@ if __name__ == "__main__":
             measurement_model,
             region_type,
         ),
-    )
+        log_id,
+     )
 
     run_tracking(
         dataset_name,

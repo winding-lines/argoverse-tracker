@@ -415,65 +415,57 @@ class Tracker:
         """
         Save result as input label format
         """
-        if dataset == 'Argoverse':
-            track_list = []
+        track_list = []
 
-            for key in self.tracks[self.ind_current_frame].keys():    
-                track = {}
-                pose = self.tracks[self.ind_current_frame][key]["x"]
-                bbox = self.tracks[self.ind_current_frame][key]["bbox"]
-                tracked = self.tracks[self.ind_current_frame][key]["tracked"]
-    
-                theta_local = rotate_orientation(
-                    pose, egovehicle_to_city_se3.rotation.transpose()
-                )
-                pose_local = np.zeros(4)
-                pose_local[0:3] = egovehicle_to_city_se3.inverse_transform_point_cloud(pose[0:3][np.newaxis, :])[0]
-                pose_local[3] = theta_local
-    
-                bbox_local = build_bbox(pose_local, bbox.width, bbox.length, bbox.height)
-    
-                track["center"] = {
-                    "x": pose_local[0],
-                    "y": pose_local[1],
-                    "z": pose_local[2],
-                }
-                track["rotation"] = {
-                    "x": bbox_local.quaternion[1],
-                    "y": bbox_local.quaternion[2],
-                    "z": bbox_local.quaternion[3],
-                    "w": bbox_local.quaternion[0],
-                }
-                track["length"] = bbox_local.length
-                track["width"]  = bbox_local.width
-                track["height"] = bbox_local.height
-                track["occlusion"] = 0
-                track["tracked"] = tracked
-                track["timestamp"] = lidar_time_stamp
-                track["label_class"] = "VEHICLE"
-                track["track_label_uuid"] = key
-    
-                track_list.append(track)
-    
-            with open(
-                os.path.join(
-                    self.path_output, "tracked_object_labels_%s.json" % (lidar_time_stamp)
-                ),
-                "w",
-            ) as outfile:
-                json.dump(track_list, outfile, indent=4)
+        for key in self.tracks[self.ind_current_frame].keys():    
+            track = {}
+            pose = self.tracks[self.ind_current_frame][key]["x"]
+            bbox = self.tracks[self.ind_current_frame][key]["bbox"]
+            tracked = self.tracks[self.ind_current_frame][key]["tracked"]
 
-        elif dataset=='KITTI':
-            print('TODO ')
+            theta_local = rotate_orientation(
+                pose, egovehicle_to_city_se3.rotation.transpose()
+            )
+            pose_local = np.zeros(4)
+            pose_local[0:3] = egovehicle_to_city_se3.inverse_transform_point_cloud(pose[0:3][np.newaxis, :])[0]
+            pose_local[3] = theta_local
 
+            bbox_local = build_bbox(pose_local, bbox.width, bbox.length, bbox.height)
 
-        else:
-            raise NotImplementedError
+            track["center"] = {
+                "x": pose_local[0],
+                "y": pose_local[1],
+                "z": pose_local[2],
+            }
+            track["rotation"] = {
+                "x": bbox_local.quaternion[1],
+                "y": bbox_local.quaternion[2],
+                "z": bbox_local.quaternion[3],
+                "w": bbox_local.quaternion[0],
+            }
+            track["length"] = bbox_local.length
+            track["width"]  = bbox_local.width
+            track["height"] = bbox_local.height
+            track["occlusion"] = 0
+            track["tracked"] = tracked
+            track["timestamp"] = lidar_time_stamp
+            track["label_class"] = "VEHICLE"
+            track["track_label_uuid"] = key
+
+            track_list.append(track)
+
+        with open(
+            os.path.join(
+                self.path_output, "tracked_object_labels_%s.json" % (lidar_time_stamp)
+            ),
+            "w",
+        ) as outfile:
+            json.dump(track_list, outfile, indent=4)
 
 
     def add_new_track(self, pc_new, track_id_new, city_R_egovehicle, city_t_egovehicle):
         """
-        Initailize and add new tracks
+        Initialize and add new tracks
         """
         tracks_frame = self.tracks[self.ind_current_frame]
         center = get_polygon_center(pc_new)
@@ -651,8 +643,7 @@ class Detector:
         Perform detection and return point cloud segments of detected objects
         """
         if self.use_maskrcnn:
-            if (self.dataset_name == 'Argoverse'and len(list_images) != len(self._RING_CAMERA_LIST)) or \
-            (self.dataset_name == 'KITTI'and len(list_images) <1):
+            if len(list_images) != len(self._RING_CAMERA_LIST):
                 print("Detector: missing image!!")
                 return []
 
