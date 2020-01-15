@@ -1,6 +1,7 @@
 # Script to run inside the docker container.
 # It assumes that /data and /tracker_output have been mounted correctly.
 set -e
+
 for i in /data/* ; do
   if [ -f $i/vehicle_calibration_info.json ] ; then
     log_id=`basename $i`
