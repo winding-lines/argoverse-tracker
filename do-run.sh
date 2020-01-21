@@ -8,5 +8,6 @@ for i in /data/* ; do
     python3 run_tracking.py --path_dataset=/data --log_id=$log_id \
       --path_output=/tracker_output --use_maskrcnn --region_type=roi --use_map_lane \
       --motion_model='const_v' --measurement_model=both --fix_bbox_size 
+    exit 0
   fi
 done
